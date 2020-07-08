@@ -647,13 +647,13 @@ Gfx *geo_render_mario_shadow(s32 callContext, UNUSED struct GraphNode *node, UNU
 
     switch (callContext) {
         case GEO_CONTEXT_CREATE:
-            // init_graph_node_object(NULL, &gMarioShadow, NULL, gVec3fZero, gVec3sZero, gVec3fOne);
+            init_graph_node_object(NULL, &gMarioShadow, NULL, gVec3fZero, gVec3sZero, gVec3fOne);
             break;
         case GEO_CONTEXT_AREA_LOAD:
-            // geo_add_child(mario->header.gfx.node.parent, &gMarioShadow.node);
+            geo_add_child(mario->header.gfx.node.parent, &gMarioShadow.node);
             break;
         case GEO_CONTEXT_AREA_UNLOAD:
-            // geo_remove_child(&gMarioShadow.node);
+            geo_remove_child(&gMarioShadow.node);
             break;
         case GEO_CONTEXT_RENDER: {
             //init variables

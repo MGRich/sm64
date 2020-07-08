@@ -445,6 +445,12 @@ u32 common_air_action_step(struct MarioState *m, u32 landAction, s32 animation, 
 }
 
 s32 act_jump(struct MarioState *m) {
+    s32 animation =
+        !m->actionArg
+            ? MARIO_ANIM_SINGLE_JUMP
+            : ((m->vel[1] >= 0.0f) ? MARIO_ANIM_DOUBLE_JUMP_RISE : MARIO_ANIM_DOUBLE_JUMP_FALL);
+
+
     if (check_kick_or_dive_in_air(m)) {
         return TRUE;
     }
@@ -453,8 +459,12 @@ s32 act_jump(struct MarioState *m) {
         return set_mario_action(m, ACT_GROUND_POUND, 0);
     }
 
+    if ((options & 16) && !m->actionArg && m->input & INPUT_A_PRESSED && m->actionTimer++) {
+        //return set_mario_action(m, ACT_JUMP, 1);
+    }
+
     play_mario_sound(m, SOUND_ACTION_TERRAIN_JUMP, 0);
-    common_air_action_step(m, ACT_JUMP_LAND, MARIO_ANIM_SINGLE_JUMP,
+    common_air_action_step(m, ACT_JUMP_LAND, animation,
                            AIR_STEP_CHECK_LEDGE_GRAB | AIR_STEP_CHECK_HANG);
     return FALSE;
 }
@@ -954,16 +964,23 @@ s32 act_steep_jump(struct MarioState *m) {
 s32 act_ground_pound(struct MarioState *m) {
     u32 stepResult;
     f32 yOffset;
-    if (!m->actionState && !m->actionTimer && m->input & INPUT_A_PRESSED) {
-        if (m->forwardVel > 10.0f) {
+    if (m->input & INPUT_A_PRESSED && !m->actionState) {
+        if (ABS(m->floorHeight - m->pos[1]) < 10.0f && !m->actionTimer && m->forwardVel > 10.0f) {
             return set_jumping_action(m, ACT_LONG_JUMP, 0);
+        }
+        if (!m->actionArg && m->flags & MARIO_WING_CAP) {
+            play_mario_sound(m, SOUND_ACTION_TERRAIN_JUMP, SOUND_MARIO_YAHOO);            
+            if (m->area->camera->mode != CAMERA_MODE_BEHIND_MARIO) {
+                set_camera_mode(m->area->camera, CAMERA_MODE_BEHIND_MARIO, 1);
+            }
+            mario_set_forward_vel(m, 40.0f);
+            return set_mario_action(m, ACT_FLYING, 1);
         }
     }
     play_sound_if_no_flag(m, SOUND_ACTION_THROW, MARIO_ACTION_SOUND_PLAYED);
     if ((m->input & INPUT_B_PRESSED) && (options & 4)) {
         return set_mario_action(m, ACT_GROUND_POUND_DIVE, 0);
     }
-
     if (m->actionState == 0) {
         if (m->actionTimer < 10) {
             yOffset = 20 - 2 * m->actionTimer;
@@ -1290,7 +1307,7 @@ s32 act_thrown_forward(struct MarioState *m) {
 s32 act_soft_bonk(struct MarioState *m) {
     if (!m->actionArg && (options & 2)) {
         if (check_wall_kick(m)) {
-            play_sound(SOUND_GENERAL_COIN_DROP, m->marioObj->header.gfx.cameraToObject);
+            play_sound(SOUND_GENERAL_COIN_DROP | SOUND_NO_ECHO | SOUND_NO_VOLUME_LOSS, m->marioObj->header.gfx.cameraToObject);
             mario_set_forward_vel(m, 12.0f);
             play_sound(SOUND_ACTION_BONK, m->marioObj->header.gfx.cameraToObject);
             return set_mario_action(m, ACT_WALL_KICK_AIR, 0);
@@ -1367,7 +1384,7 @@ s32 act_air_hit_wall(struct MarioState *m) {
     if (++(m->actionTimer) <= 2) {
         if (m->input & INPUT_A_PRESSED) {
             m->vel[1] = 52.0f;
-            if (options & 2) play_sound(SOUND_GENERAL_COIN_DROP, m->marioObj->header.gfx.cameraToObject);
+            if (options & 2) play_sound(SOUND_GENERAL_COIN_DROP | SOUND_NO_ECHO | SOUND_NO_VOLUME_LOSS, m->marioObj->header.gfx.cameraToObject);
             m->faceAngle[1] += 0x8000;
             return set_mario_action(m, ACT_WALL_KICK_AIR, 0);
         }
@@ -1942,7 +1959,7 @@ s32 act_flying_triple_jump(struct MarioState *m) {
         if (m->input & INPUT_B_PRESSED) {
             return set_mario_action(m, ACT_DIVE, 0);
         } else {
-            return set_mario_action(m, ACT_GROUND_POUND, 0);
+            return set_mario_action(m, ACT_GROUND_POUND, 1);
         }
     }
 #else
@@ -1951,7 +1968,7 @@ s32 act_flying_triple_jump(struct MarioState *m) {
     }
 
     if (m->input & INPUT_Z_PRESSED) {
-        return set_mario_action(m, ACT_GROUND_POUND, 0);
+        return set_mario_action(m, ACT_GROUND_POUND, 1);
     }
 #endif
 
@@ -2127,7 +2144,7 @@ s32 act_wall_kick_slide(struct MarioState *m) {
     }
     if (m->input & INPUT_A_PRESSED) {
         if (m->actionTimer < 3) {
-            play_sound(SOUND_GENERAL_COIN_DROP, m->marioObj->header.gfx.cameraToObject);
+            play_sound(SOUND_GENERAL_COIN_DROP | SOUND_NO_ECHO | SOUND_NO_VOLUME_LOSS, m->marioObj->header.gfx.cameraToObject);
             m->vel[1] = 52.0f;
             mario_set_forward_vel(m, -(f32)m->actionArg);
         } 

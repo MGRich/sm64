@@ -12,6 +12,7 @@
 #include "game/camera.h"
 #include "seq_ids.h"
 #include "dialog_ids.h"
+#include "game/print.h"
 
 #ifdef VERSION_EU
 #define EU_FLOAT(x) x ## f
@@ -474,6 +475,9 @@ u16 sUnused80332118 = 0; // never read, set to 0
 u8 D_8033211C = 0;
 u8 D_80332120 = 0;
 u8 D_80332124 = 0;
+u8 paused = false;
+f32 ogVolume[16];
+f32 prepan[16];
 
 #ifdef VERSION_EU
 u8 D_EU_80300558 = 0;
@@ -1151,6 +1155,7 @@ f32 get_sound_pan(f32 x, f32 z) {
     }
 
     return pan;
+    //return pan > 0.5f ? pan * 2.0f : pan / 2.0f;
 }
 
 f32 get_sound_dynamics(u8 bankIndex, u8 item, f32 arg2) {
@@ -1203,7 +1208,8 @@ f32 get_sound_dynamics(u8 bankIndex, u8 item, f32 arg2) {
 f32 get_sound_freq_scale(u8 bankIndex, u8 item) {
     f32 f2;
 
-    if (!(gSoundBanks[bankIndex][item].soundBits & SOUND_NO_FREQUENCY_LOSS)) {
+    //if (!(gSoundBanks[bankIndex][item].soundBits & SOUND_NO_FREQUENCY_LOSS)) {
+    if (false) {
         f2 = gSoundBanks[bankIndex][item].distance / AUDIO_MAX_DISTANCE;
         if (gSoundBanks[bankIndex][item].soundBits & SOUND_VIBRATO) {
             f2 += (f32)(gAudioRandom & 0xff) / US_FLOAT(64.0);
@@ -1221,7 +1227,8 @@ f32 get_sound_freq_scale(u8 bankIndex, u8 item) {
 u8 get_sound_reverb(UNUSED u8 bankIndex, UNUSED u8 item, u8 channelIndex) {
     u8 area;
     u8 level;
-    u8 reverb;
+    s16 reverb;
+    //return 0xFF;
 
 #ifndef VERSION_JP
     if (gSoundBanks[bankIndex][item].soundBits & SOUND_NO_ECHO) {
@@ -1237,14 +1244,15 @@ u8 get_sound_reverb(UNUSED u8 bankIndex, UNUSED u8 item, u8 channelIndex) {
 #ifndef VERSION_JP
     }
 #endif
-    reverb = (u8)((u8) gSequencePlayers[SEQ_PLAYER_SFX].channels[channelIndex]->soundScriptIO[5]
+    reverb = (s16)((u8) gSequencePlayers[SEQ_PLAYER_SFX].channels[channelIndex]->soundScriptIO[5]
                   + gAreaEchoLevel[level][area]
-                   + (US_FLOAT(1.0) - gSequencePlayers[SEQ_PLAYER_SFX].channels[channelIndex]->volume) * VAL);
-
+                   + (US_FLOAT(1.0) - gSequencePlayers[SEQ_PLAYER_SFX].channels[channelIndex]->volume) * VAL
+                    + (gSoundBanks[bankIndex][item].distance) / 100.0f - 24.0f);
     if (reverb > 0x7f) {
         reverb = 0x7f;
     }
-    return reverb;
+    //print_text_fmt_int(10, 10, "%x", reverb);
+    return (u8)reverb;
 }
 
 #undef VAL
@@ -1277,6 +1285,39 @@ void update_game_sound(void) {
 #ifndef VERSION_EU
     f32 ret;
 #endif
+
+    /*u8 i;
+    u8 chtoplay[3] = {3, 9, 10};
+
+    if (sCapVolumeTo40)  {
+        for (j = 0; j < CHANNELS_MAX; j++) {
+            if (!paused) {
+                ogVolume[j] = gSequencePlayers[0].channels[j]->volume;
+                prepan[j] = gSequencePlayers[0].channels[j]->pan;
+                paused = true;
+            }
+            for (i = 0; i < 4; i++) {
+                if (i == 3) {
+                    gSequencePlayers[0].channels[j]->volume = 0.0f;
+                    //sequence_channel_disable(gSequencePlayers[0].channels[j]);                    
+                    break;
+                }
+                if (j == chtoplay[i]) {
+                    //gSequencePlayers[0].channels[j]->volume = 40.0f;
+                    gSequencePlayers[0].channels[j]->pan = 0.5f;
+                    break;
+                }
+            }
+        }
+    }
+    else if (paused) {
+        for (j = 0; j < CHANNELS_MAX; j++) {
+            //sequence_channel_enable(gSequencePlayers[0]);
+            gSequencePlayers[0].channels[j]->volume = ogVolume[j];
+            gSequencePlayers[0].channels[j]->pan = prepan[j];
+        }
+        paused = false;
+    }//*/
 
     process_all_sound_requests();
     process_level_music_dynamics();
@@ -2146,6 +2187,7 @@ void play_music(u8 player, u16 seqArgs, u16 fadeTimer) {
     u8 priority = seqArgs >> 8;
     u8 i;
     u8 foundIndex = 0;
+    if (options & 256) return; //MUTEMUSIC
 
     // Except for the background music player, we don't support queued
     // sequences. Just play them immediately, stopping any old sequence.

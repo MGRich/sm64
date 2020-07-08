@@ -21,6 +21,8 @@
 #include "thread6.h"
 #include <prevent_bss_reordering.h>
 
+#include "mario.h"
+
 // FIXME: I'm not sure all of these variables belong in this file, but I don't
 // know of a good way to split them
 struct Controller gControllers[3];
@@ -392,6 +394,19 @@ void adjust_analog_stick(struct Controller *controller) {
 
     if (controller->rawStickY >= 8) {
         controller->stickY = controller->rawStickY - 6;
+    }
+
+    if (options & 128) {
+        controller->stickX = 0;
+        controller->stickY = 0;
+        if (controller->buttonDown & U_JPAD)
+            controller->stickY += 64;
+        if (controller->buttonDown & D_JPAD)
+            controller->stickY -= 64;
+        if (controller->buttonDown & L_JPAD)
+            controller->stickX -= 64;
+        if (controller->buttonDown & R_JPAD)
+            controller->stickX += 64;
     }
 
     // calculate f32 magnitude from the center by vector length.

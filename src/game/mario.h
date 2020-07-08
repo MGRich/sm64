@@ -3,7 +3,6 @@
 
 extern u32 gAudioRandom;
 extern u32 unused80339F10;
-extern u8 options;
 #include <PR/ultratypes.h>
 
 #include "macros.h"

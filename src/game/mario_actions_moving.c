@@ -1572,7 +1572,7 @@ s32 stomach_slide_action(struct MarioState *m, u32 stopAction, u32 airAction, s3
 
 s32 act_stomach_slide(struct MarioState *m) {
     s32 cancel;
-    if (m->input & (INPUT_A_PRESSED | INPUT_B_PRESSED) && m->forwardVel < -3.0f) {
+    if (m->input & (INPUT_A_PRESSED | INPUT_B_PRESSED) && m->forwardVel < -30.0f) {
 #ifdef VERSION_SH
         queue_rumble_data(5, 80);
 #endif
@@ -1585,7 +1585,7 @@ s32 act_stomach_slide(struct MarioState *m) {
 s32 act_hold_stomach_slide(struct MarioState *m) {
     s32 cancel;
 
-    if (m->input & (INPUT_A_PRESSED | INPUT_B_PRESSED) && m->forwardVel < -3.0f) {
+    if (m->input & (INPUT_A_PRESSED | INPUT_B_PRESSED) && m->forwardVel < -30.0f) {
 #ifdef VERSION_SH
         queue_rumble_data(5, 80);
 #endif
@@ -1601,7 +1601,7 @@ s32 act_hold_stomach_slide(struct MarioState *m) {
 }
 
 s32 act_dive_slide(struct MarioState *m) {
-    if (m->input & (INPUT_A_PRESSED | INPUT_B_PRESSED)) {
+    if (m->input & (INPUT_A_PRESSED | INPUT_B_PRESSED) && ((m->input & INPUT_ABOVE_SLIDE) ? m->forwardVel < -30.0f : true)) {
 #ifdef VERSION_SH
         queue_rumble_data(5, 80);
 #endif

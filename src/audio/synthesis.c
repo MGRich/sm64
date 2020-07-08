@@ -1421,6 +1421,7 @@ void note_set_vel_pan_reverb(struct Note *note, f32 velocity, f32 pan, u8 reverb
     s32 panIndex;
     f32 volLeft;
     f32 volRight;
+    //reverb = 0xFF;
 #ifdef VERSION_JP
     panIndex = MIN((s32)(pan * 127.5), 127);
 #else

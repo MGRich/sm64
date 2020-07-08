@@ -686,6 +686,12 @@ s32 act_fall_after_star_grab(struct MarioState *m) {
 // general death hander
 s32 common_death_handler(struct MarioState *m, s32 animation, s32 frameToDeathWarp) {
     s32 animFrame = set_mario_animation(m, animation);
+    if (sDelayedWarpOp == WARP_OP_NONE) {
+        spawn_object(m->marioObj, MODEL_EXPLOSION, bhvExplosion);
+        spawn_object(m->marioObj, MODEL_YELLOW_COIN, bhvTemporaryYellowCoin);
+        level_trigger_warp(m, WARP_OP_DEATH);
+        m->marioObj->header.gfx.node.flags &= ~1;
+    }
     if (animFrame == frameToDeathWarp) {
         level_trigger_warp(m, WARP_OP_DEATH);
     }

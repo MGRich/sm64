@@ -80,6 +80,7 @@ void reset_volume(void) {
 
 void lower_background_noise(s32 a) // Soften volume
 {
+    //a = 2;
     switch (a) {
         case 1:
             set_sound_disabled(TRUE);
@@ -93,6 +94,7 @@ void lower_background_noise(s32 a) // Soften volume
 
 void raise_background_noise(s32 a) // harden volume
 {
+    //a = 2;
     switch (a) {
         case 1:
             set_sound_disabled(FALSE);

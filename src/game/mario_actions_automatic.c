@@ -228,7 +228,7 @@ s32 act_grab_pole_slow(struct MarioState *m) {
     play_sound_if_no_flag(m, SOUND_MARIO_WHOA, MARIO_MARIO_SOUND_PLAYED);
 
     if (set_pole_position(m, 0.0f) == POLE_NONE) {
-        set_mario_animation(m, MARIO_ANIM_GRAB_POLE_SHORT);
+        set_mario_anim_with_accel(m, MARIO_ANIM_GRAB_POLE_SHORT, 0x18000);
         if (is_anim_at_end(m)) {
             set_mario_action(m, ACT_HOLDING_POLE, 0);
         }
@@ -247,9 +247,9 @@ s32 act_grab_pole_fast(struct MarioState *m) {
 
     if (set_pole_position(m, 0.0f) == POLE_NONE) {
         if (marioObj->oMarioPoleYawVel > 0x800) {
-            set_mario_animation(m, MARIO_ANIM_GRAB_POLE_SWING_PART1);
+            set_mario_anim_with_accel(m, MARIO_ANIM_GRAB_POLE_SWING_PART1, 0x18000);
         } else {
-            set_mario_animation(m, MARIO_ANIM_GRAB_POLE_SWING_PART2);
+            set_mario_anim_with_accel(m, MARIO_ANIM_GRAB_POLE_SWING_PART2, 0x18000);
             if (is_anim_at_end(m) != 0) {
                 marioObj->oMarioPoleYawVel = 0;
                 set_mario_action(m, ACT_HOLDING_POLE, 0);
@@ -345,7 +345,7 @@ s32 perform_hanging_step(struct MarioState *m, Vec3f nextPos) {
 s32 update_hang_moving(struct MarioState *m) {
     s32 stepResult;
     Vec3f nextPos;
-    f32 maxSpeed = 4.0f;
+    f32 maxSpeed = 6.0f;
 
     m->forwardVel += 1.0f;
     if (m->forwardVel > maxSpeed) {
@@ -414,7 +414,7 @@ s32 act_start_hanging(struct MarioState *m) {
     play_sound_if_no_flag(m, SOUND_ACTION_HANGING_STEP, MARIO_ACTION_SOUND_PLAYED);
     update_hang_stationary(m);
 
-    if (is_anim_at_end(m)) {
+    if (is_anim_past_frame(m, 16)) {
         set_mario_action(m, ACT_HANGING, 0);
     }
 
@@ -463,9 +463,9 @@ s32 act_hang_moving(struct MarioState *m) {
     }
 
     if (m->actionArg & 1) {
-        set_mario_animation(m, MARIO_ANIM_MOVE_ON_WIRE_NET_RIGHT);
+        set_mario_anim_with_accel(m, MARIO_ANIM_MOVE_ON_WIRE_NET_RIGHT, 0x18000);
     } else {
-        set_mario_animation(m, MARIO_ANIM_MOVE_ON_WIRE_NET_LEFT);
+        set_mario_anim_with_accel(m, MARIO_ANIM_MOVE_ON_WIRE_NET_LEFT, 0x18000);
     }
 
     if (m->marioObj->header.gfx.unk38.animFrame == 12) {

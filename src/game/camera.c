@@ -2911,6 +2911,11 @@ void update_lakitu(struct Camera *c) {
 
     if (gCameraMovementFlags & CAM_MOVE_PAUSE_SCREEN) {
     } else {
+        if (gLakituState.unusedVec1[0]) {
+            gLakituState.roll = gLakituState.unusedVec1[0];
+            sFOVState.fov = gLakituState.unusedVec1[1];
+            gLakituState.unusedVec1[0] = gLakituState.unusedVec1[1] = 0.0f;        
+        }
         if (c->cutscene) {
         }
         if (TRUE) {
@@ -3449,13 +3454,21 @@ void zoom_out_if_paused_and_outside(struct GraphNodeCamera *camera) {
     UNUSED u8 unused2[4];
     s32 areaMaskIndex = gCurrLevelArea / 32;
     s32 areaBit = 1 << (((gCurrLevelArea & 0x10) / 4) + (((gCurrLevelArea & 0xF) - 1) & 3));
-
     if (areaMaskIndex >= LEVEL_MAX / 2) {
         areaMaskIndex = 0;
         areaBit = 0;
     }
     if (gCameraMovementFlags & CAM_MOVE_PAUSE_SCREEN) {
-        if (sFramesPaused >= 2) {
+        if (!gLakituState.unusedVec1[0]) {
+            gLakituState.unusedVec1[0] = gLakituState.roll;
+            gLakituState.unusedVec1[1] = sFOVState.fov;
+        }
+        if (sFramesPaused <= 0x30)
+            gLakituState.roll += 0x30 - sFramesPaused++;
+        camera_approach_f32_symmetric_bool(&sFOVState.fov, 35.f, 0.2f);
+        gCamera->yaw += 0x20;
+        return;
+        /*if (sFramesPaused >= 2) {
             if (sZoomOutAreaMasks[areaMaskIndex] & areaBit) {
 
                 camera->focus[0] = gCamera->areaCenX;
@@ -3469,7 +3482,7 @@ void zoom_out_if_paused_and_outside(struct GraphNodeCamera *camera) {
             }
         } else {
             sFramesPaused++;
-        }
+        }//*/
     } else {
         sFramesPaused = 0;
     }

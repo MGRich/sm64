@@ -1520,6 +1520,10 @@ static s32 check_common_submerged_cancels(struct MarioState *m) {
     return FALSE;
 }
 
+static s32 act_water_ground_pound(struct MarioState *m) {
+    
+}
+
 s32 mario_execute_submerged_action(struct MarioState *m) {
     s32 cancel;
 

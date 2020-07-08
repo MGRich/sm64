@@ -111,7 +111,7 @@ s16 level_select_input_loop(void) {
         gCurrLevelNum = LEVEL_MAX; // exceeded min. set to max.
     }
 
-    gCurrSaveFileNum = 4; // file 4 is used for level select tests
+    gCurrSaveFileNum = 1; // file 4 is used for level select tests
     gCurrActNum = 6;
     print_text_centered(160, 80, "SELECT STAGE");
     print_text_centered(160, 30, "PRESS START BUTTON");
@@ -192,7 +192,7 @@ int intro_play_its_a_me_mario(void) {
 
 s32 lvl_intro_update(s16 arg1, UNUSED s32 arg2) {
     s32 retVar;
-
+    //if (arg1) arg1 = 3;
     switch (arg1) {
         case 0:
             retVar = intro_play_its_a_me_mario();

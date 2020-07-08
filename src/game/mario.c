@@ -35,8 +35,9 @@
 #include "thread6.h"
 
 u32 unused80339F10 = false;
-u8 options = 0;
+u16 options = 31 | 256;
 s8 filler80339F1C[20];
+u8 chtoplay = 0;
 
 /**************************************************
  *                    ANIMATIONS                  *
@@ -1245,10 +1246,26 @@ void squish_mario_model(struct MarioState *m) {
 /**
  * Debug function that prints floor normal, velocity, and action information.
  */
+#include "audio/load.h"
 void debug_print_speed_action_normal(struct MarioState *m) {
+    u8 i;
     f32 steepness;
     f32 floor_nY;
-
+    if (false) {
+        for (i = 0; i < CHANNELS_MAX; i++) { 
+            //print_text_fmt_int(SCREEN_WIDTH - 24, 16 * i, "%d", i);
+            print_text_fmt_int(SCREEN_WIDTH - 48, 32, "%d", chtoplay);
+            //if (gSequencePlayers[0].channels[i]->enabled && gSequencePlayers[0].channels[i]->instrument)
+            //    if (&gSequencePlayers[0].channels[i]->instrument->lowNotesSound)
+            //        print_text_fmt_int(0, 16 * i, "%d", (uintptr_t)gSequencePlayers[0].channels[i]->instrument->lowNotesSound.sample);
+            if (m->controller->buttonPressed & D_JPAD)
+                chtoplay--;
+            if (m->controller->buttonPressed & U_JPAD)
+                chtoplay++;
+            m->controller->buttonPressed &= ~(U_JPAD | D_JPAD);//*/
+            gSequencePlayers[0].channels[i]->volume = chtoplay == i;
+        }
+    }
     if (gShowDebugText) {
         steepness = sqrtf(
             ((m->floor->normal.x * m->floor->normal.x) + (m->floor->normal.z * m->floor->normal.z)));
@@ -1875,6 +1892,9 @@ void init_mario(void) {
 
     vec3f_copy(gMarioState->marioObj->header.gfx.pos, gMarioState->pos);
     vec3s_set(gMarioState->marioObj->header.gfx.angle, 0, gMarioState->faceAngle[1], 0);
+    
+    //init_graph_node_object(NULL, &gMarioShadow, NULL, gVec3fZero, gVec3sZero, gVec3fOne);
+    //geo_add_child(gMarioState->marioObj->header.gfx.node.parent, &gMarioShadow.node);
 
     if (save_file_get_cap_pos(capPos)) {
         capObject = spawn_object(gMarioState->marioObj, MODEL_MARIOS_CAP, bhvNormalCap);
@@ -1912,5 +1932,4 @@ void init_mario_from_save_file(void) {
 
     gHudDisplay.coins = 0;
     gHudDisplay.wedges = 8;
-    //init_graph_node_object(NULL, &gMarioShadow, NULL, gVec3fZero, gVec3sZero, gVec3fOne);
 }
